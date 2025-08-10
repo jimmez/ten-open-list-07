@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +21,7 @@
       overflow-x: hidden;
     }
 
-    /* Top-right note */
+    /* Stamp (top-right) */
     #stamp {
       position: fixed;
       top: 6px;
@@ -52,7 +51,7 @@
     .timing-buttons,
     .custom-time,
     .toggle-buttons,
-    .sequence-panel,
+    .combine-panel,
     .names-panel,
     .data-panel {
       display: flex;
@@ -78,7 +77,7 @@
     #output {
       font-weight: bold;
       text-align: center;
-      margin: 18px 12px 10px;
+      margin: 18px 12px 6px;
       word-break: break-word;
       z-index: 1;
       font-size: clamp(22px, 7.5vw, 46px);
@@ -86,30 +85,19 @@
       max-width: var(--maxw);
     }
 
-    /* Colored words (match list colors) */
-    .wA { color:#2ecc71; }
-    .wB { color:#3498db; }
-    .wC { color:#e67e22; }
-    .wD { color:#9b59b6; }
-    .wE { color:#e74c3c; }
-    .wF { color:#1abc9c; }
-    .wG { color:#f1c40f; }
-    .wH { color:#95a5a6; }
-    .wI { color:#ff6b6b; }
-    .wJ { color:#bdc3c7; }
-
-    /* Colored letters on list buttons */
-    .letter { font-weight: 700; margin-right: 4px; }
-    .letter-A { color:#2ecc71; }
-    .letter-B { color:#3498db; }
-    .letter-C { color:#e67e22; }
-    .letter-D { color:#9b59b6; }
-    .letter-E { color:#e74c3c; }
-    .letter-F { color:#1abc9c; }
-    .letter-G { color:#f1c40f; }
-    .letter-H { color:#95a5a6; }
-    .letter-I { color:#ff6b6b; }
-    .letter-J { color:#bdc3c7; }
+    /* Source tag under output (only visible when Combine ON) */
+    #sourceTag {
+      display: none;
+      font-size: 12px;
+      color: #fff;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 9999px;
+      padding: 4px 10px;
+      margin: 4px 0 8px;
+      text-align: center;
+      max-width: var(--maxw);
+    }
 
     /* Inline audio status (always visible) */
     #audioStatus {
@@ -260,46 +248,20 @@
       padding-bottom: 16px;
     }
 
-    /* Sequence panel (always visible) */
-    .seq-btn {
-      position: relative;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 6px 10px;
-      font-size: 13px;
-      min-width: 46px;
-      color: #fff;
-    }
-    .seq-btn.active {
-      border-color: #0a84ff;
-      box-shadow: 0 0 0 1px #0a84ff inset;
-    }
-    .seq-badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #0a84ff;
-      color: #fff;
-      width: 18px;
-      height: 18px;
-      font-size: 11px;
-      border-radius: 50%;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-    .seq-btn.active .seq-badge { display: flex; }
-
-    .sequence-controls {
+    /* Combine panel */
+    #combinePanel { display: none; }
+    #combinePanel.show { display: flex; }
+    #combinePanel label {
       display: flex;
-      gap: 8px;
-      justify-content: center;
-      width: 100%;
-      margin-top: 4px;
+      align-items: center;
+      gap: 6px;
+      background: #1a1a1a;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      font-size: 12px;
     }
-    .sequence-help {
+    #combineHelp {
       width: 100%;
       text-align: center;
       font-size: 11px;
@@ -336,7 +298,9 @@
     }
 
     /* Data panel */
-    .data-panel button { background: #444; }
+    .data-panel button {
+      background: #444;
+    }
 
     @media (max-width: 420px) {
       button { font-size: 12px; padding: 6px 9px; }
@@ -348,7 +312,7 @@
 </head>
 <body>
 
-  <!-- Note -->
+  <!-- Stamp -->
   <div id="stamp">jimmy james - 10.08.2025 - kl 13:26 - v.04</div>
 
   <div class="controls">
@@ -357,23 +321,21 @@
       <button id="soundToggle" onclick="toggleSound()">🔊 Sound: ON</button>
       <button id="autoToggle" onclick="toggleAuto()">▶️ Auto: OFF</button>
       <button id="volBtn" aria-expanded="false" aria-controls="volPanel">🎚 Audio</button>
+      <button id="combineToggle" onclick="toggleCombine()">🔗 Combine: OFF</button>
       <button id="namesToggle" onclick="toggleNames()">📝 Names</button>
       <button id="voiceBtn" title="Random voice per prompt: OFF">🎲 Voice: OFF</button>
       <span id="audioStatus" aria-live="polite">Vol 100% • 1.00×</span>
     </div>
 
-    <!-- 10 list buttons (with colored letters) -->
+    <!-- 10 list buttons -->
     <div class="list-buttons" id="listButtons"></div>
 
     <!-- Inline rename panel (A–J) -->
     <div id="namesPanel" class="names-panel" aria-label="Rename lists"></div>
 
-    <!-- Sequence panel (always visible; tap to set order) -->
-    <div id="sequencePanel" class="sequence-panel" aria-label="Select lists for sequence"></div>
-    <div class="sequence-controls">
-      <button id="resetSeqBtn" title="Clear all selections">♻️ Reset</button>
-    </div>
-    <div class="sequence-help">Tap lists to set the <u>sequence</u> (1,2,3…). Prompt = one random item from each, joined with spaces.</div>
+    <!-- Combine panel (A–J) -->
+    <div id="combinePanel" class="combine-panel" aria-label="Select lists for pool"></div>
+    <div id="combineHelp">Combine mode: picks <u>one</u> random item from the selected lists.</div>
 
     <button id="editBtn" onclick="openModal()">✏️ Edit Current List</button>
 
@@ -427,6 +389,7 @@
 
   <main id="tapArea" aria-label="Tap anywhere for next prompt">
     <div id="output">Your prompt will appear here.</div>
+    <div id="sourceTag" aria-live="polite"></div>
   </main>
 
   <!-- Modal -->
@@ -457,11 +420,25 @@
     let volume = 1.0; // 0..1
     let rate = 1.0;   // 0.6..1.6
 
-    // sequence of letters in chosen order (always-on)
-    let combineSequence = []; // e.g., ["A","C","D"]
+    let combineMode = false;
+    let combineSelection = new Set(); // letters selected for combine pool
 
     let voicePool = [];                 // up to 5 English voices
     let randomVoicePerPrompt = false;   // toggle
+
+    // Fixed colors for source tag (A–J)
+    const SOURCE_COLORS = {
+      A: { bg: '#2ecc71', border: '#27ae60', text: '#000' }, // green
+      B: { bg: '#3498db', border: '#2980b9', text: '#fff' }, // blue
+      C: { bg: '#e67e22', border: '#d35400', text: '#000' }, // orange
+      D: { bg: '#9b59b6', border: '#8e44ad', text: '#fff' }, // purple
+      E: { bg: '#e74c3c', border: '#c0392b', text: '#fff' }, // red
+      F: { bg: '#1abc9c', border: '#16a085', text: '#000' }, // teal
+      G: { bg: '#f1c40f', border: '#f39c12', text: '#000' }, // yellow
+      H: { bg: '#34495e', border: '#2c3e50', text: '#fff' }, // slate
+      I: { bg: '#ff6b6b', border: '#e05656', text: '#000' }, // coral
+      J: { bg: '#7f8c8d', border: '#666f70', text: '#fff' }  // gray
+    };
 
     // ===== Elements =====
     const volBtn = document.getElementById('volBtn');
@@ -483,30 +460,24 @@
 
     const listButtons = document.getElementById('listButtons');
     const namesPanel = document.getElementById('namesPanel');
-    const sequencePanel = document.getElementById('sequencePanel');
-    const resetSeqBtn = document.getElementById('resetSeqBtn');
-    const output = document.getElementById('output');
+    const combinePanel = document.getElementById('combinePanel');
+    const sourceTag = document.getElementById('sourceTag');
 
     const importBtn = document.getElementById('importBtn');
     const exportBtn = document.getElementById('exportBtn');
     const importFile = document.getElementById('importFile');
 
-    // ===== Build UI =====
-    function coloredLetterSpan(letter){
-      return `<span class="letter letter-${letter}">${letter}</span>`;
-    }
-
+    // ===== Build dynamic UI (A–J) =====
     function buildListButtons() {
       listButtons.innerHTML = '';
       LETTERS.forEach(l => {
         const b = document.createElement('button');
         b.id = 'btn' + l;
-        b.innerHTML = `${coloredLetterSpan(l)}${escapeHtml(getListName(l))}`;
+        b.textContent = getListName(l);
         b.onclick = () => switchList(l);
         listButtons.appendChild(b);
       });
     }
-
     function buildNamesPanel() {
       namesPanel.innerHTML = '';
       LETTERS.forEach(l => {
@@ -522,32 +493,20 @@
         namesPanel.appendChild(label);
       });
     }
-
-    // Sequence selection buttons (letters)
-    function buildSequencePanel() {
-      sequencePanel.innerHTML = '';
+    function buildCombinePanel() {
+      combinePanel.innerHTML = '';
       LETTERS.forEach(l => {
-        const btn = document.createElement('button');
-        btn.className = 'seq-btn';
-        btn.dataset.letter = l;
-        btn.id = 'seq_' + l;
-        btn.innerHTML = coloredLetterSpan(l);
-        const badge = document.createElement('div');
-        badge.className = 'seq-badge';
-        badge.textContent = '';
-        btn.appendChild(badge);
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          toggleSeqLetter(l);
-        });
-        sequencePanel.appendChild(btn);
+        const lab = document.createElement('label');
+        lab.innerHTML = `<input type="checkbox" value="${l}"> ${l}`;
+        const cb = lab.querySelector('input');
+        cb.addEventListener('change', () => toggleCombineList(cb));
+        combinePanel.appendChild(lab);
       });
-      refreshSequenceBadges();
     }
 
     // ===== Init / Load =====
     function loadSettings() {
-      // lists
+      // load lists
       LETTERS.forEach(l => {
         const stored = localStorage.getItem('promptList_' + l);
         if (stored) lists[l] = JSON.parse(stored);
@@ -566,22 +525,23 @@
         const storedNames = JSON.parse(localStorage.getItem('promptListNames') || '{}');
         names = { ...defaultNames, ...storedNames };
       } catch(e){ names = { ...defaultNames }; }
-      // sequence
+      // combine selection
       try {
-        const savedSeq = JSON.parse(localStorage.getItem('combineSequence') || '[]');
-        combineSequence = savedSeq.filter(x => LETTERS.includes(x));
-      } catch(e){ combineSequence = []; }
+        const savedSel = JSON.parse(localStorage.getItem('combineSelection') || '[]');
+        combineSelection = new Set(savedSel.filter(x => LETTERS.includes(x)));
+      } catch(e){ combineSelection = new Set(); }
 
-      updateListButtonsTexts();
+      updateListButtons();
+      updateNameInputs();
       updateSoundButton();
       updateAutoButton();
       updateVolumeUI();
       updateRateUI();
+      updateCombineUI();
       updateVoiceButtonUI();
       updateAudioStatus();
-      refreshSequenceBadges();
 
-      // default timing highlight
+      // default highlight for timing 10–20
       highlightTimerButton('timeBtn10');
 
       // voices pool
@@ -590,10 +550,10 @@
 
     // ===== Names helpers =====
     function getListName(letter){ return names[letter] || defaultNames[letter]; }
-    function updateListButtonsTexts() {
+    function updateListButtons() {
       LETTERS.forEach(l => {
         const btn = document.getElementById('btn' + l);
-        if (btn) btn.innerHTML = `${coloredLetterSpan(l)}${escapeHtml(getListName(l))}`;
+        if (btn) btn.textContent = getListName(l);
       });
     }
     function updateNameInputs() {
@@ -602,7 +562,7 @@
     }
     function saveNames() {
       localStorage.setItem('promptListNames', JSON.stringify(names));
-      updateListButtonsTexts();
+      updateListButtons();
       if (document.getElementById('modal').style.display === 'flex') {
         document.getElementById('modalListLabel').textContent = getListName(currentList);
       }
@@ -613,47 +573,6 @@
       names[letter] = e.target.value || defaultNames[letter];
       if (nameSaveTimer) clearTimeout(nameSaveTimer);
       nameSaveTimer = setTimeout(saveNames, 200);
-    }
-
-    // ===== Sequence selection logic =====
-    function toggleSeqLetter(letter) {
-      const idx = combineSequence.indexOf(letter);
-      if (idx >= 0) {
-        combineSequence.splice(idx, 1);
-      } else {
-        combineSequence.push(letter);
-      }
-      localStorage.setItem('combineSequence', JSON.stringify(combineSequence));
-      refreshSequenceBadges();
-      generatePrompt();
-    }
-
-    function clearSequence() {
-      combineSequence = [];
-      localStorage.setItem('combineSequence', JSON.stringify(combineSequence));
-      refreshSequenceBadges();
-      generatePrompt();
-    }
-
-    resetSeqBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      clearSequence();
-    });
-
-    function refreshSequenceBadges() {
-      LETTERS.forEach(l => {
-        const btn = document.getElementById('seq_' + l);
-        if (!btn) return;
-        const badge = btn.querySelector('.seq-badge');
-        const idx = combineSequence.indexOf(l);
-        if (idx >= 0) {
-          btn.classList.add('active');
-          badge.textContent = String(idx + 1);
-        } else {
-          btn.classList.remove('active');
-          badge.textContent = '';
-        }
-      });
     }
 
     // ===== List switching / editing =====
@@ -683,30 +602,44 @@
     function randFrom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
     function getRandomFrom(letter) {
       const list = lists[letter] || [];
-      return list.length === 0 ? null : randFrom(list);
+      return list.length === 0 ? `[No items in ${getListName(letter)}]` : randFrom(list);
+    }
+
+    function setSourceTagColor(letter) {
+      const c = SOURCE_COLORS[letter] || { bg:'#1a1a1a', border:'#333', text:'#fff' };
+      sourceTag.style.background = c.bg;
+      sourceTag.style.borderColor = c.border;
+      sourceTag.style.color = c.text;
+    }
+
+    function showSourceTag(letter) {
+      if (!letter) { sourceTag.style.display = 'none'; return; }
+      setSourceTagColor(letter);
+      sourceTag.textContent = `from: ${getListName(letter)} (${letter})`;
+      sourceTag.style.display = 'inline-block';
     }
 
     function generatePrompt() {
-      let html = '';
-      if (combineSequence.length > 0) {
-        const parts = [];
-        combineSequence.forEach(l => {
-          const item = getRandomFrom(l);
-          if (item !== null) parts.push(`<span class="w${l}">${escapeHtml(item)}</span>`);
-        });
-        html = parts.length ? parts.join(' ') : 'No prompts in selected lists';
+      let text;
+      let chosenLetter = null;
+      if (combineMode && combineSelection.size > 0) {
+        const letters = Array.from(combineSelection);
+        const nonEmpty = letters.filter(l => (lists[l] || []).length > 0);
+        if (nonEmpty.length) {
+          chosenLetter = randFrom(nonEmpty);
+          text = getRandomFrom(chosenLetter);
+        } else {
+          text = "No prompts in selected lists";
+        }
       } else {
-        const item = getRandomFrom(currentList);
-        html = item ? `<span class="w${currentList}">${escapeHtml(item)}</span>` : `[No items in ${escapeHtml(getListName(currentList))}]`;
+        text = getRandomFrom(currentList);
       }
-      output.innerHTML = html;
+      document.getElementById('output').textContent = text;
 
-      const spoken = output.textContent; // voice reads plain text only
-      if (soundOn) speak(spoken);
-    }
+      if (combineMode && chosenLetter) showSourceTag(chosenLetter);
+      else sourceTag.style.display = 'none';
 
-    function escapeHtml(s){
-      return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      if (soundOn) speak(text);
     }
 
     // ===== Timer + active highlight =====
@@ -788,6 +721,7 @@
     }
     function updateVolumeUI() {
       const h = volSlider.clientHeight - 12;
+      const percent = Math.round(volume * h);
       volFill.style.height = Math.round(volume * h) + 'px';
       volThumb.style.transform = `translateY(${-(volume * h)}px)`;
       volReadout.textContent = 'Volume: ' + Math.round(volume*100) + '%';
@@ -858,6 +792,27 @@
       if (!within) volPanel.classList.remove('show');
     });
 
+    function toggleCombine() {
+      combineMode = !combineMode;
+      localStorage.setItem('combineMode', combineMode);
+      updateCombineUI();
+      generatePrompt();
+    }
+    function updateCombineUI() {
+      document.getElementById('combineToggle').textContent = combineMode ? "🔗 Combine: ON" : "🔗 Combine: OFF";
+      combinePanel.classList.toggle('show', combineMode);
+      combinePanel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = combineSelection.has(cb.value);
+      });
+      if (!combineMode) sourceTag.style.display = 'none';
+    }
+    function toggleCombineList(cb) {
+      if (cb.checked) combineSelection.add(cb.value);
+      else combineSelection.delete(cb.value);
+      localStorage.setItem('combineSelection', JSON.stringify(Array.from(combineSelection)));
+      generatePrompt();
+    }
+
     function toggleNames() { namesPanel.classList.toggle('show'); }
 
     // Random voice per prompt
@@ -917,12 +872,12 @@
     // ===== Export / Import JSON =====
     exportBtn.addEventListener('click', () => {
       const data = {
-        version: 'pg-10lists-seq-v04',
+        version: 'pg-10lists-v04',
         lists,
         names,
         settings: {
           soundOn, autoPlay, volume, rate,
-          combineSequence,
+          combineMode, combineSelection: Array.from(combineSelection),
           randomVoicePerPrompt
         }
       };
@@ -947,6 +902,7 @@
 
         if (!data || typeof data !== 'object') throw new Error('Invalid file');
 
+        // load lists/names
         if (data.lists && typeof data.lists === 'object') {
           LETTERS.forEach(l => { lists[l] = Array.isArray(data.lists[l]) ? data.lists[l] : []; });
           LETTERS.forEach(l => localStorage.setItem('promptList_' + l, JSON.stringify(lists[l])));
@@ -955,35 +911,36 @@
           names = { ...defaultNames, ...data.names };
           localStorage.setItem('promptListNames', JSON.stringify(names));
         }
+        // load settings
         if (data.settings) {
           const s = data.settings;
           soundOn = !!s.soundOn;
           autoPlay = !!s.autoPlay;
           volume = Math.max(0, Math.min(1, +s.volume || 1));
           rate = Math.max(0.6, Math.min(1.6, +s.rate || 1));
-          if (Array.isArray(s.combineSequence)) {
-            combineSequence = s.combineSequence.filter(x => LETTERS.includes(x));
-          }
+          combineMode = !!s.combineMode;
+          combineSelection = new Set((s.combineSelection || []).filter(x => LETTERS.includes(x)));
           randomVoicePerPrompt = !!s.randomVoicePerPrompt;
         }
 
-        // persist
+        // refresh UI + persist toggles
         localStorage.setItem('soundOn', soundOn);
         localStorage.setItem('autoPlay', autoPlay);
         localStorage.setItem('volume', volume.toFixed(3));
         localStorage.setItem('rate', rate.toFixed(3));
-        localStorage.setItem('combineSequence', JSON.stringify(combineSequence));
+        localStorage.setItem('combineMode', combineMode);
+        localStorage.setItem('combineSelection', JSON.stringify(Array.from(combineSelection)));
         localStorage.setItem('randomVoicePerPrompt', randomVoicePerPrompt);
 
-        updateListButtonsTexts();
+        updateListButtons();
         updateNameInputs();
         updateSoundButton();
         updateAutoButton();
         updateVolumeUI();
         updateRateUI();
+        updateCombineUI();
         updateVoiceButtonUI();
         updateAudioStatus();
-        refreshSequenceBadges();
         switchList(currentList);
 
         alert('Import complete ✅');
@@ -998,7 +955,7 @@
     // ===== Boot =====
     buildListButtons();
     buildNamesPanel();
-    buildSequencePanel();
+    buildCombinePanel();
     loadSettings();
     switchList('A');
   </script>
